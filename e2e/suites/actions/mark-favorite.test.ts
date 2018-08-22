@@ -24,12 +24,12 @@
  */
 
 import { LoginPage, LogoutPage, BrowsingPage } from '../../pages/pages';
-import { SIDEBAR_LABELS } from '../../configs';
+import { SIDEBAR_LABELS, SITE_VISIBILITY } from '../../configs';
 import { RepoClient } from '../../utilities/repo-client/repo-client';
 import { Utils } from '../../utilities/utils';
 import { browser } from 'protractor';
 
-describe('Mark items as favorites', () => {
+fdescribe('Mark items as favorites', () => {
     const username = `user-${Utils.random()}`;
 
     const file1NotFav = `file-${Utils.random()}.txt`;
@@ -37,8 +37,10 @@ describe('Mark items as favorites', () => {
     const file3Fav = `file-${Utils.random()}.txt`;
     const file4Fav = `file-${Utils.random()}.txt`;
     const folder1 = `folder-${Utils.random()}`;
+    const siteName = `site-public-${Utils.random()}`;
+    const fileSite = `file-site${Utils.random()}.txt`;
 
-    let file1Id, file2Id, file3Id, file4Id, folder1Id;
+    let file1Id, file2Id, file3Id, file4Id, folder1Id, fileSiteId;
 
     const apis = {
         admin: new RepoClient(),
@@ -58,6 +60,9 @@ describe('Mark items as favorites', () => {
             .then(() => apis.user.nodes.createFile( file4Fav ).then(resp => file4Id = resp.entry.id))
             .then(() => apis.user.nodes.createFolder( folder1 ).then(resp => folder1Id = resp.entry.id))
 
+            .then(() => apis.user.sites.createSite(siteName, SITE_VISIBILITY.PUBLIC))
+            // .then(() => apis.user.nodes.createFile(fileSite, `Sites/${siteName}/documentLibrary`))
+
             .then(() => apis.user.favorites.addFavoriteById('file', file3Id))
             .then(() => apis.user.favorites.addFavoriteById('file', file4Id))
 
@@ -71,6 +76,7 @@ describe('Mark items as favorites', () => {
     afterAll(done => {
         Promise.all([
             apis.user.nodes.deleteNodesById([ file1Id, file2Id, file3Id, file4Id, folder1Id ]),
+            apis.user.sites.deleteSite(siteName),
             logoutPage.load()
         ])
         .then(done);
@@ -423,4 +429,29 @@ describe('Mark items as favorites', () => {
         });
     });
 
+    fdescribe ('on File Libraries', () => {
+        const fileLibrariesPage = new BrowsingPage();
+
+        beforeAll(done => {
+            fileLibrariesPage.sidenav.navigateToLinkByLabel(SIDEBAR_LABELS.FILE_LIBRARIES)
+                .then(() => fileLibrariesPage.dataTable.waitForHeader())
+                .then(done);
+        })
+
+        afterEach(done => {
+            fileLibrariesPage.refresh().then(done);
+        })
+
+        it('Mark a file as favorite - [C280342]', () => {
+            fileLibrariesPage.dataTable.doubleClickOnRowByName(siteName)
+                .then(() => dataTable.selectItem(fileSite));
+                // .then(() => toolbar.actions.openMoreMenu())
+                // .then(() => toolbar.actions.menu.clickMenuItem('Favorite'))
+                // // .then(() => apis.user.favorites.waitForApi({ expect: 3}))
+                // .then(() => apis.user.favorites.isFavorite(fileSiteId))
+                // .then(isFavorite => expect(isFavorite).toBe(true, `${fileSite} not marked as favorite`))
+
+                // .then(() => apis.user.favorites.removeFavoriteById(fileSiteId));
+        });
+    });
 });
