@@ -48,6 +48,7 @@ import {
   ExtensionService,
   ProfileState
 } from '@alfresco/adf-extensions';
+import { MetadataRef } from '../../../projects/adf-extensions/src/lib/config/metadata.extensions';
 
 @Injectable()
 export class AppExtensionService implements RuleContext {
@@ -65,6 +66,7 @@ export class AppExtensionService implements RuleContext {
   createActions: Array<ContentActionRef> = [];
   navbar: Array<NavBarGroupRef> = [];
   sidebar: Array<SidebarTabRef> = [];
+  contentMetadata: any;
 
   selection: SelectionState;
   navigation: NavigationState;
@@ -126,6 +128,10 @@ export class AppExtensionService implements RuleContext {
     this.sidebar = this.loader.getElements<SidebarTabRef>(
       config,
       'features.sidebar'
+    );
+    this.contentMetadata = this.loader.getElements<MetadataRef>(
+      config,
+      'features.content-metadata'
     );
   }
 
